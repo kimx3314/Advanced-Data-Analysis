@@ -1,0 +1,170 @@
+---
+title: "Homework 1"
+author: "Sungil Kim"
+date: "September 9, 2017"
+output: pdf_document
+---
+
+##Problem 2
+```{r}
+library("MASS")
+Z = matrix(c(1, 5, 1, -3, 1, 2, 1, 4), nrow=4, ncol=2, byrow=T)
+Y = matrix(c(2, 1, -1, 3), nrow=4, ncol=1, byrow=F)
+M = matrix(c(20, 15, 0, 5, 25, 10, 0, 20, 5), nrow=3, ncol=3, byrow=T)
+N = matrix(c(-20, 5, 10, 0, -10, 10, 5, 20, -5), nrow=3, ncol=3, byrow=T)
+v = matrix(c(1, -1, 3), nrow=3, ncol=1, byrow=F)
+w = matrix(c(2, 1, -1), nrow=3, ncol=1, byrow=F)
+#dot product is a 1x1 matrix, a.k.a. a scalar
+```
+
+a)
+```{r}
+t(v)%*%w
+```
+
+b)
+```{r}
+(-3)*w
+```
+
+c)
+```{r}
+M%*%v
+```
+
+d)
+```{r}
+M+N
+```
+
+e)
+```{r}
+M-N
+```
+
+f)
+```{r}
+t(Z)
+```
+
+g)
+```{r}
+t(Z)%*%Z
+```
+
+h)
+```{r}
+ginv(t(Z)%*%Z)
+```
+
+i)
+```{r}
+t(Z)%*%Y
+```
+
+j)
+```{r}
+(ginv(t(Z)%*%Z))%*%(t(Z)%*%Y)
+```
+
+k)
+```{r}
+det(t(Z)%*%Z)
+```
+
+##Problem 3
+```{r}
+#setting the working directory
+setwd("C:/Users/sungi/Documents/CSC424/HW1")
+
+library(corrplot)
+
+#reading the data
+olympic = read.table("01 olympics.csv", sep=",", header=T)
+
+#looking at the data itself to first examine
+head(olympic)
+plot(olympic)
+
+#removing the non-numerical columns
+olym = olympic[c(3:9)]
+head(olym)
+
+#correlation
+cor.olym = cor(olym)
+corrplot(cor.olym, method="ellipse")
+```
+Looking at the correlation plots above, I have noticed that there is a fairly significant relationship between the country's national GDP and the overall medal counts. Although it is obviously not a direct causation, it is interesting to see how the country's GDP (or the wealth of the people in the country) can affect how well their players do in the olympics. It makes sense that if the country is wealthy (high GDP), then the players will be funded more in many different areas such as nutrition, facilities, coaches, etc. In order to further prove this, multiple regression should be used to analyze more. This is just a hypothesis, but if people wanted their country to do well in the olympics, maybe it is time for them to start working to better themselves and their country overall.
+
+##Problem 4
+
+a)
+```{r}
+library(car)
+library(rcompanion)
+
+#reading the data
+data = read.table("01 housing.data")
+
+#examining variables for the ideal transformations
+hist(data$V1)
+data$ln_V1 = log(data$V1)
+hist(data$ln_V1)
+
+#the histogram examination was performed for all variables; codes are removed for simplicity however.
+data$sq_V2 = sqrt(data$V2) #sqrt was used since log transformation gave -inf values
+data$ln_V3 = log(data$V3)
+data$ln_V5 = log(data$V5)
+data$sq_V7 = (data$V7)^2
+data$ln_V8 = log(data$V8)
+data$ln_V9 = log(data$V9)
+data$ln_V10 = log(data$V10)
+data$sq_V11 = (data$V11)^2
+data$tk_V12 = transformTukey(data$V12,plotit=FALSE)
+data$ln_V13 = log(data$V13)
+data$ln_V14 = log(data$V14)
+
+#modeling after the transformation
+M0 = lm(ln_V1 ~ sq_V2 + ln_V3 + as.factor(V4) + ln_V5 + V6 + sq_V7 + ln_V8 + ln_V9 + ln_V10 + sq_V11 + tk_V12 + ln_V13 + ln_V14, data=data)
+summary(M0)
+
+#checking vif statistics and correlation for multicollinearity
+vif(M0)#all good
+cor(data)#all good
+
+#setting up null and full models for the variable selection
+null = lm(ln_V1 ~ 1, data=data)
+full = lm(ln_V1 ~ sq_V2 + ln_V3 + as.factor(V4) + ln_V5 + V6 + sq_V7 + ln_V8 + ln_V9 + ln_V10 + sq_V11 + tk_V12 + ln_V13 + ln_V14, data=data)
+
+#forward selection
+dataFwd = step(null, scope = list(lower=null, upper=full), direction="forward")
+summary(dataFwd)
+```
+After performing the forward selection method, the independent variables selected were ln_V9, ln_V5, sq_V7, tk_V12, ln_V3, ln_V14, ln_V8, ln_V10 and sq_V2. Looking at the p-value and the t-statistics, the ln_V3 is the only non-significant variable. The multiple R squared is 0.876 and adjusted R squared is 0.8737.
+
+b)
+```{r}
+#backward elimination
+dataBkwd = step(full, direction="backward")
+summary(dataBkwd)
+
+#stepwise regression
+dataStp = step(null, scope = list(upper=full), direction="both")
+summary(dataStp)
+```
+After performing the backward selection method, the independent variables selected were ln_V9, ln_V5, sq_V7, tk_V12, ln_V3, ln_V14, ln_V8, ln_V10 and sq_V2. Looking at the p-value and the t-statistics, the ln_V3 is the only non-significant variable. The multiple R squared is 0.876 and adjusted R squared is 0.8737. For the stepwise selection, the independent variables selected were ln_V9, ln_V5, sq_V7, tk_V12, ln_V3, ln_V14, ln_V8, ln_V10 and sq_V2. Looking at the p-value and the t-statistics, the ln_V3 is the only non-significant variable. The multiple R squared is 0.876 and adjusted R squared is 0.8737. All the selection method I have performed selected the same independent variables, just in different orders. The multiple R squared and adjusted R Squared values were also the same.
+
+c)
+Since all three selection method performed gave the same result, this model best represents the data. They all had the same adjusted R squared values. The adjusted and multiple R squared values were high, with all t-statistics highly significant.
+
+d)
+```{r}
+#performing ANOVA
+M1 = aov(ln_V1 ~ ln_V9 + ln_V5 + sq_V7 + tk_V12 + ln_V3 + ln_V14 + ln_V8 + ln_V10 + sq_V2, data=data)
+summary(M1)
+```
+After performing ANOVA for the model that was selected after the selection methods, the F-statistics and the p-value suggests that all covariates included in the ANOVA have significant effect on Y. The linear regression result from the selection methods demonstrates that all t-statistics and estimated coefficients of the covariates except for ln_V3 are significant. Even the p-value of ln_V3 were very close to being 0.05. The multiple and adjusted R- Squared high enough to demonstrate significance. The standard errors also looked not too big. For every 1 increase in ln_V9, the Y increases by 1.130e+00. For every 1 increase in ln_V5, the Y increases by 1.880e+00. For every 1 increase in sq_V7, the Y increases by 6.497e-05. For every 1 increase in tk_V12, the Y decreases by 7.210e-27. For every 1 increase in ln_V3, the Y increases by 1.555e-01.For every 1 increase in ln_V14, the Y decreases by 3.803e-01. For every 1 increase in ln_V8, the Y decreases by 3.396e-01. For every 1 increase in ln_V10, the Y increases by 4.262e-01. For every 1 increase in sq_V2, the Y decreases by 3.364e-02.
+
+##Problem 5
+
+It would be very interesting to see if multiple regression is used in the field of streetwear/fashion. The dependent variable would be total sales made by each brands. There would be many possible independent variables, such as different types of clothes made, the materials used, cost of materials used, where the clothes were manufactured, brand media coverage (# of articles or news), fundings received from outside sources, collaborations between other brands, and so on. Obviously it would be extremely hard to gather all these data, and even so, there should be many more independent variables that cause the total sales fluctuate.
