@@ -1,4 +1,4 @@
 # Advanced-Data-Analysis
-( R )
+# Final Project
 
-by Sungil Kim
+by Sean Sungil Kim
