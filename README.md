@@ -1,4 +1,4 @@
-### Advanced-Data-Analysis
-### Final Project
+### Advanced Data Analysis
+### Predicting Facial Attractiveness in Portraits
 
 by Sean Sungil Kim
