@@ -1,6 +1,6 @@
 ## Advanced Data Analysis
 ### Predicting Facial Attractiveness in Portraits
-with Python and R
+using Python and R
 
 
 
